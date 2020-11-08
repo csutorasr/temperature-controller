@@ -31,7 +31,9 @@
     "document-register-element": "1.13.1",
     "express": "4.17.1",
     "react": "16.13.1",
-    "react-dom": "16.13.1"
+    "react-dom": "16.13.1",
+    "socket.io": "^3.0.0",
+    "socket.io-client": "^3.0.0"
   },
   "devDependencies": {
     "@babel/core": "7.9.6",

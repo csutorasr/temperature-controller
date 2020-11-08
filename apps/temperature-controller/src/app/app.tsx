@@ -3,6 +3,7 @@ import {
   ChangeRequest,
   TemperatureResult,
 } from '@temperature-controller/api-interfaces';
+import Temperature from './temperature';
 
 function setRelay(size: 'small' | 'big', on: boolean) {
   fetch(`/api/relay/${size}`, {
@@ -16,19 +17,9 @@ function setRelay(size: 'small' | 'big', on: boolean) {
 }
 
 export const App = () => {
-  const [temperature, setTemperature] = useState<TemperatureResult>({
-    temperature: undefined,
-  });
-
-  useEffect(() => {
-    fetch('/api/temperature')
-      .then((r) => r.json())
-      .then(setTemperature);
-  }, []);
-
   return (
     <div>
-      {temperature.temperature} C°
+      <Temperature />
       <h2>small</h2>
       <button onClick={() => setRelay('small', true)}>On</button>
       <button onClick={() => setRelay('small', false)}>Off</button>
