@@ -19,7 +19,9 @@
               "apps/temperature-controller/src/favicon.ico",
               "apps/temperature-controller/src/assets"
             ],
-            "styles": ["apps/temperature-controller/src/styles.scss"],
+            "styles": [
+              "apps/temperature-controller/src/styles.scss"
+            ],
             "scripts": [],
             "webpackConfig": "@nrwl/react/plugins/webpack"
           },
@@ -98,7 +100,9 @@
         "lint": {
           "builder": "@nrwl/linter:eslint",
           "options": {
-            "lintFilePatterns": ["apps/temperature-controller-e2e/**/*.{js,ts}"]
+            "lintFilePatterns": [
+              "apps/temperature-controller-e2e/**/*.{js,ts}"
+            ]
           }
         }
       }
@@ -116,13 +120,16 @@
             "outputPath": "dist/apps/api",
             "main": "apps/api/src/main.ts",
             "tsConfig": "apps/api/tsconfig.app.json",
-            "assets": ["apps/api/src/assets"]
+            "assets": [
+              "apps/api/src/assets"
+            ]
           },
           "configurations": {
             "production": {
               "optimization": true,
               "extractLicenses": true,
               "inspect": false,
+              "externalDependencies": "none",
               "fileReplacements": [
                 {
                   "replace": "apps/api/src/environments/environment.ts",
@@ -135,13 +142,17 @@
         "serve": {
           "builder": "@nrwl/node:execute",
           "options": {
-            "buildTarget": "api:build"
+            "buildTarget": "api:build",
+            "inspect": true,
+            "port": 7777
           }
         },
         "lint": {
           "builder": "@nrwl/linter:eslint",
           "options": {
-            "lintFilePatterns": ["apps/api/**/*.ts"]
+            "lintFilePatterns": [
+              "apps/api/**/*.ts"
+            ]
           }
         },
         "test": {
@@ -162,7 +173,9 @@
         "lint": {
           "builder": "@nrwl/linter:eslint",
           "options": {
-            "lintFilePatterns": ["libs/api-interfaces/**/*.ts"]
+            "lintFilePatterns": [
+              "libs/api-interfaces/**/*.ts"
+            ]
           }
         },
         "test": {

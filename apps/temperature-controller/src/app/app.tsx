@@ -1,26 +1,41 @@
 import React, { useEffect, useState } from 'react';
-import { Message } from '@temperature-controller/api-interfaces';
+import {
+  ChangeRequest,
+  TemperatureResult,
+} from '@temperature-controller/api-interfaces';
+
+function setRelay(size: 'small' | 'big', on: boolean) {
+  fetch(`/api/relay/${size}`, {
+    method: 'POST',
+    body: JSON.stringify({ on } as ChangeRequest),
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+    },
+  });
+}
 
 export const App = () => {
-  const [m, setMessage] = useState<Message>({ message: '' });
+  const [temperature, setTemperature] = useState<TemperatureResult>({
+    temperature: undefined,
+  });
 
   useEffect(() => {
-    fetch('/api')
+    fetch('/api/temperature')
       .then((r) => r.json())
-      .then(setMessage);
+      .then(setTemperature);
   }, []);
 
   return (
-    <>
-      <div style={{ textAlign: 'center' }}>
-        <h1>Welcome to temperature-controller!</h1>
-        <img
-          width="450"
-          src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png"
-        />
-      </div>
-      <div>{m.message}</div>
-    </>
+    <div>
+      {temperature.temperature} C°
+      <h2>small</h2>
+      <button onClick={() => setRelay('small', true)}>On</button>
+      <button onClick={() => setRelay('small', false)}>Off</button>
+      <h2>big</h2>
+      <button onClick={() => setRelay('big', true)}>On</button>
+      <button onClick={() => setRelay('big', false)}>Off</button>
+    </div>
   );
 };
 
