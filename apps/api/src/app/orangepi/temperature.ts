@@ -31,5 +31,5 @@ export async function getTemperature() {
     throw new Error('No temperature file is found');
   }
   const temperatureInThousands = await readFileAsync(slavePath);
-  return +temperatureInThousands / 1000;
+  return Math.round(+temperatureInThousands / 100) / 10;
 }
