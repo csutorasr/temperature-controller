@@ -9,9 +9,13 @@ export default function Temperature() {
     const socket = io({
       path: '/api/socket.io',
     });
-    socket.on('temperature', ({ temperature }: TemperatureResult) => {
+    const onTemperature = ({ temperature }: TemperatureResult) => {
       setTemperature(temperature);
-    });
+    };
+    socket.on('temperature', onTemperature);
+    return () => {
+      socket.off('temperature', onTemperature);
+    };
   }, []);
 
   return <p>{temperature} C°</p>;
