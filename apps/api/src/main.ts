@@ -5,6 +5,7 @@ import { setupRest } from './app/rest';
 import { setupSocketIO } from './app/socket.io';
 import { startBackgroundJob } from './app/background-job';
 import { setupTemperatureCache } from './app/temperature-cache';
+import { setupRelayController } from './app/relay-controller';
 
 const app = express();
 
@@ -21,3 +22,4 @@ server.listen(port, () => {
 server.on('error', console.error);
 startBackgroundJob();
 setupTemperatureCache();
+setupRelayController();
