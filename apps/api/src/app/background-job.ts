@@ -1,3 +1,4 @@
+import { environment } from '../environments/environment';
 import { getTemperature } from './orangepi/temperature';
 
 export interface JobResult {
@@ -9,10 +10,17 @@ let interval: NodeJS.Timer;
 
 const listeners: JobCallback[] = [];
 
+let developmentTemperature: number;
+
 export function startBackgroundJob(intervalInSeconds = 5000) {
+  if (!environment.production) {
+    developmentTemperature = 25;
+  }
   stopBackgroundJob();
   interval = setInterval(async () => {
-    const temperature = await getTemperature();
+    const temperature = environment.production
+      ? await getTemperature()
+      : developmentTemperature;
     const data: JobResult = {
       temperature,
     };
