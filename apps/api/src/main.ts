@@ -12,6 +12,9 @@ const app = express();
 app.use(express.static('./assets'));
 app.use(json());
 setupRest(app);
+app.use('/*', (_, res) => {
+  res.sendfile('./assets/index.html');
+});
 
 const port = process.env.port || 3333;
 const server = createServer(app);
