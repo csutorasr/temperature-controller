@@ -129,7 +129,9 @@
               "optimization": true,
               "extractLicenses": true,
               "inspect": false,
-              "externalDependencies": "none",
+              "externalDependencies": [
+                "sqlite3"
+              ],
               "fileReplacements": [
                 {
                   "replace": "apps/api/src/environments/environment.ts",
