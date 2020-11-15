@@ -17,10 +17,10 @@ export default function TemperatureInput({
     temperature,
   ]);
   const plusTenths = useCallback(() => {
-    setTemperature(Math.round(temperature + 0.1));
+    setTemperature(Math.round(temperature * 10 + 1) / 10);
   }, [setTemperature, temperature]);
   const minusTenths = useCallback(() => {
-    setTemperature(Math.round(temperature - 0.1));
+    setTemperature(Math.round(temperature * 10 - 1) / 10);
   }, [setTemperature, temperature]);
   const plusUnits = useCallback(() => {
     setTemperature(Math.round(temperature + 1));
