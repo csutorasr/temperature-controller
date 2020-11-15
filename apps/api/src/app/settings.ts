@@ -21,6 +21,11 @@ export let settings: Configuration = {
   level2Temperature: 55,
 };
 
+export async function setSettings(input: Configuration) {
+  settings = input;
+  await saveSettings();
+}
+
 database.serialize(async () => {
   await createTable();
   await loadSettings();
@@ -67,7 +72,7 @@ async function loadSettings(): Promise<void> {
   );
 }
 
-export async function saveSettings(): Promise<void> {
+async function saveSettings(): Promise<void> {
   return new Promise((resolve) => {
     database.serialize(async () => {
       await Promise.all(

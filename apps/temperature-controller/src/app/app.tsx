@@ -1,32 +1,24 @@
-import React, { useEffect, useState } from 'react';
-import {
-  ChangeRequest,
-  TemperatureResult,
-} from '@temperature-controller/api-interfaces';
-import Temperature from './temperature';
-
-function setRelay(size: 'small' | 'big', on: boolean) {
-  fetch(`/api/relay/${size}`, {
-    method: 'POST',
-    body: JSON.stringify({ on } as ChangeRequest),
-    headers: {
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-    },
-  });
-}
+import React from 'react';
+import { Link, Switch } from 'react-router-dom';
+import { Route } from 'react-router-dom';
+import { BrowserRouter } from 'react-router-dom';
+import Main from './pages/main';
+import Settings from './pages/settings';
 
 export const App = () => {
   return (
-    <div>
-      <Temperature />
-      <h2>small</h2>
-      <button onClick={() => setRelay('small', true)}>On</button>
-      <button onClick={() => setRelay('small', false)}>Off</button>
-      <h2>big</h2>
-      <button onClick={() => setRelay('big', true)}>On</button>
-      <button onClick={() => setRelay('big', false)}>Off</button>
-    </div>
+    <BrowserRouter>
+      <Link to="/">Home</Link>
+      <Link to="/settings">Settings</Link>
+      <Switch>
+        <Route path="/settings">
+          <Settings />
+        </Route>
+        <Route>
+          <Main />
+        </Route>
+      </Switch>
+    </BrowserRouter>
   );
 };
 
