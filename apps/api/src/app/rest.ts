@@ -30,19 +30,28 @@ export function setupRest(app: Express) {
     });
     res.sendStatus(200);
   });
-  app.post('/api/relay/small', async (req, res) => {
-    const data: ChangeRequest = req.body;
+  app.post('/api/relay/off', async (_, res) => {
     try {
-      await changeSmall(data.on);
+      await changeSmall(false);
+      await changeBig(false);
       res.sendStatus(200);
     } catch (error) {
       res.status(500).send((error as Error).message);
     }
   });
-  app.post('/api/relay/big', async (req, res) => {
-    const data: ChangeRequest = req.body;
+  app.post('/api/relay/level1', async (_, res) => {
     try {
-      await changeBig(data.on);
+      await changeSmall(true);
+      await changeBig(false);
+      res.sendStatus(200);
+    } catch (error) {
+      res.status(500).send((error as Error).message);
+    }
+  });
+  app.post('/api/relay/level2', async (_, res) => {
+    try {
+      await changeSmall(true);
+      await changeBig(true);
       res.sendStatus(200);
     } catch (error) {
       res.status(500).send((error as Error).message);
