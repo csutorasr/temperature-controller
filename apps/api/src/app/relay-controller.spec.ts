@@ -1,6 +1,7 @@
 import { advanceTo, advanceBy, clear } from 'jest-date-mock';
 import { JobResult } from './background-job';
-import { setupRelayController } from './relay-controller';
+import * as relay from './orangepi/relay';
+import { forceInternalState, setupRelayController } from './relay-controller';
 import { Configuration } from './settings';
 
 let callback: ({ temperature }: JobResult) => Promise<void>;
@@ -17,32 +18,41 @@ jest.mock('./settings', () => {
   });
   return obj;
 });
-let changeBig: jest.Mock, changeSmall: jest.Mock;
-jest.mock('./orangepi/relay', () => {
-  const obj = {};
-  Object.defineProperty(obj, 'changeBig', {
-    get: () => changeBig,
-  });
-  Object.defineProperty(obj, 'changeSmall', {
-    get: () => changeSmall,
-  });
-  return obj;
-});
+jest.mock('./orangepi/relay', () => ({
+  changeBig: jest.fn(),
+  changeSmall: jest.fn(),
+}));
+const changeBig = <jest.Mock>relay.changeBig;
+const changeSmall = <jest.Mock>relay.changeSmall;
 
 describe('Relay controller', () => {
   beforeAll(() => {
     advanceTo(new Date(2020, 0));
   });
   beforeEach(() => {
-    changeBig = jest.fn().mockResolvedValue(true);
-    changeSmall = jest.fn().mockResolvedValue(true);
+    changeBig.mockResolvedValue(true);
+    changeSmall.mockResolvedValue(true);
     setupRelayController();
     advanceBy(60 * 60 * 1000);
   });
   it('should set up background job', () => {
     expect(callback).toBeDefined();
   });
+  it('should not turn on under temperature', async () => {
+    forceInternalState('off');
+    settings = {
+      minimumOnTime: 30,
+      minimumOffTime: 30,
+      hysteresis: 2,
+      level1Temperature: 45,
+      level2Temperature: 55,
+    };
+    await callback({ temperature: 25 });
+    expect(changeBig).not.toHaveBeenCalledWith(true);
+    expect(changeSmall).not.toHaveBeenCalledWith(true);
+  });
   it('should turn off under temperature', async () => {
+    forceInternalState('level2');
     settings = {
       minimumOnTime: 30,
       minimumOffTime: 30,
@@ -53,6 +63,19 @@ describe('Relay controller', () => {
     await callback({ temperature: 25 });
     expect(changeBig).toHaveBeenCalledWith(false);
     expect(changeSmall).toHaveBeenCalledWith(false);
+  });
+  it('should not turn off under temperature if still off', async () => {
+    forceInternalState('off');
+    settings = {
+      minimumOnTime: 30,
+      minimumOffTime: 30,
+      hysteresis: 2,
+      level1Temperature: 45,
+      level2Temperature: 55,
+    };
+    await callback({ temperature: 25 });
+    expect(changeBig).not.toHaveBeenCalledWith(false);
+    expect(changeSmall).not.toHaveBeenCalledWith(false);
   });
 
   it('should do nothing on level 1 hysteresis', async () => {
@@ -77,11 +100,24 @@ describe('Relay controller', () => {
       level2Temperature: 55,
     };
     await callback({ temperature: 45.1 });
-    expect(changeBig).toHaveBeenCalledWith(false);
     expect(changeSmall).toHaveBeenCalledWith(true);
   });
 
+  it('should not change level 2 on at level 1 temperature', async () => {
+    forceInternalState('off');
+    settings = {
+      minimumOnTime: 30,
+      minimumOffTime: 30,
+      hysteresis: 2,
+      level1Temperature: 45,
+      level2Temperature: 55,
+    };
+    await callback({ temperature: 45.1 });
+    expect(changeBig).not.toHaveBeenCalled();
+  });
+
   it('should turn level 2 on at level 2 temperature', async () => {
+    forceInternalState('level1');
     settings = {
       minimumOnTime: 30,
       minimumOffTime: 30,
@@ -91,10 +127,11 @@ describe('Relay controller', () => {
     };
     await callback({ temperature: 55.1 });
     expect(changeBig).toHaveBeenCalledWith(true);
-    expect(changeSmall).toHaveBeenCalledWith(true);
+    expect(changeSmall).not.toHaveBeenCalled();
   });
 
   it('should wait for minimum on time', async () => {
+    forceInternalState('level1', 'setTime');
     settings = {
       minimumOnTime: 30,
       minimumOffTime: 40,
@@ -102,24 +139,16 @@ describe('Relay controller', () => {
       level1Temperature: 45,
       level2Temperature: 55,
     };
-    await callback({ temperature: 45.1 });
-    expect(changeBig).toHaveBeenLastCalledWith(false);
-    expect(changeSmall).toHaveBeenLastCalledWith(true);
-    expect(changeBig).toHaveBeenCalledTimes(1);
-    expect(changeSmall).toHaveBeenCalledTimes(1);
     advanceBy(30 * 1000);
     await callback({ temperature: 40 });
-    expect(changeBig).toHaveBeenCalledTimes(1);
-    expect(changeSmall).toHaveBeenCalledTimes(1);
+    expect(changeSmall).not.toHaveBeenCalled();
     advanceBy(1);
     await callback({ temperature: 40 });
-    expect(changeBig).toHaveBeenCalledTimes(2);
-    expect(changeSmall).toHaveBeenCalledTimes(2);
-    expect(changeBig).toHaveBeenCalledWith(false);
-    expect(changeSmall).toHaveBeenCalledWith(false);
+    expect(changeSmall).toHaveBeenLastCalledWith(false);
   });
 
   it('should wait for minimum off time', async () => {
+    forceInternalState('off', 'setTime');
     settings = {
       minimumOnTime: 40,
       minimumOffTime: 30,
@@ -127,24 +156,16 @@ describe('Relay controller', () => {
       level1Temperature: 45,
       level2Temperature: 55,
     };
-    await callback({ temperature: 25 });
-    expect(changeBig).toHaveBeenLastCalledWith(false);
-    expect(changeSmall).toHaveBeenLastCalledWith(false);
-    expect(changeBig).toHaveBeenCalledTimes(1);
-    expect(changeSmall).toHaveBeenCalledTimes(1);
     advanceBy(30 * 1000);
     await callback({ temperature: 45.1 });
-    expect(changeBig).toHaveBeenCalledTimes(1);
-    expect(changeSmall).toHaveBeenCalledTimes(1);
+    expect(changeSmall).not.toHaveBeenCalled();
     advanceBy(1);
     await callback({ temperature: 45.1 });
-    expect(changeBig).toHaveBeenCalledTimes(2);
-    expect(changeSmall).toHaveBeenCalledTimes(2);
-    expect(changeBig).toHaveBeenCalledWith(false);
-    expect(changeSmall).toHaveBeenCalledWith(false);
+    expect(changeSmall).toHaveBeenLastCalledWith(true);
   });
 
   it('should use level 1 hysteresis', async () => {
+    forceInternalState('level1');
     settings = {
       minimumOnTime: 30,
       minimumOffTime: 30,
@@ -152,25 +173,14 @@ describe('Relay controller', () => {
       level1Temperature: 45,
       level2Temperature: 55,
     };
-    await callback({ temperature: 25 });
-    expect(changeBig).toHaveBeenLastCalledWith(false);
-    expect(changeSmall).toHaveBeenLastCalledWith(false);
-    expect(changeBig).toHaveBeenCalledTimes(1);
-    expect(changeSmall).toHaveBeenCalledTimes(1);
-    advanceBy(30 * 1000 + 1);
-    await callback({ temperature: 45.1 });
-    expect(changeBig).toHaveBeenLastCalledWith(false);
-    expect(changeSmall).toHaveBeenLastCalledWith(true);
-    advanceBy(30 * 1000 + 1);
     await callback({ temperature: 43 });
-    expect(changeBig).toHaveBeenLastCalledWith(false);
-    expect(changeSmall).toHaveBeenLastCalledWith(true);
+    expect(changeSmall).not.toHaveBeenCalled();
     await callback({ temperature: 42.9 });
-    expect(changeBig).toHaveBeenLastCalledWith(false);
     expect(changeSmall).toHaveBeenLastCalledWith(false);
   });
 
   it('should use level 2 hysteresis', async () => {
+    forceInternalState('level2');
     settings = {
       minimumOnTime: 30,
       minimumOffTime: 30,
@@ -178,20 +188,10 @@ describe('Relay controller', () => {
       level1Temperature: 45,
       level2Temperature: 55,
     };
-    await callback({ temperature: 55 });
-    expect(changeBig).not.toHaveBeenCalled();
-    expect(changeSmall).toHaveBeenLastCalledWith(true);
-    advanceBy(30 * 1000 + 1);
-    await callback({ temperature: 55.1 });
-    expect(changeBig).toHaveBeenLastCalledWith(true);
-    expect(changeSmall).toHaveBeenLastCalledWith(true);
-    advanceBy(30 * 1000 + 1);
     await callback({ temperature: 53 });
-    expect(changeBig).toHaveBeenLastCalledWith(true);
-    expect(changeSmall).toHaveBeenLastCalledWith(true);
+    expect(changeBig).not.toHaveBeenCalled();
     await callback({ temperature: 52.9 });
     expect(changeBig).toHaveBeenLastCalledWith(false);
-    expect(changeSmall).toHaveBeenLastCalledWith(true);
   });
 
   afterEach(() => {
