@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { ConfigurationResult } from '@temperature-controller/api-interfaces';
 import Temperature from '../temperature';
 import TemperatureInput from '../temperature-input';
+import SecondInput from '../second-input';
 
 async function getSettings() {
   return await fetch(`/api/settings`);
@@ -52,17 +53,31 @@ export const Settings = () => {
         setTemperature={(value: number) =>
           setSettingsProperty('level1Temperature', value)
         }
-        title="Level1"
+        title="1. szint"
       />
       <TemperatureInput
         temperature={settings?.level2Temperature}
         setTemperature={(value: number) =>
           setSettingsProperty('level2Temperature', value)
         }
-        title="Level2"
+        title="2. szint"
+      />
+      <SecondInput
+        second={settings?.minimumOnTime}
+        setSecond={(value: number) =>
+          setSettingsProperty('minimumOnTime', value)
+        }
+        title="min Be"
+      />
+      <SecondInput
+        second={settings?.minimumOffTime}
+        setSecond={(value: number) =>
+          setSettingsProperty('minimumOffTime', value)
+        }
+        title="min Ki"
       />
       <button onClick={() => saveSettings(settings)} className="primary">
-        Save
+        Mentés
       </button>
     </>
   );
