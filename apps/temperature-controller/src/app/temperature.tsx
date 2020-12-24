@@ -1,6 +1,7 @@
 import { TemperatureResult } from '@temperature-controller/api-interfaces';
 import React, { useEffect, useState } from 'react';
 import { getSocket, releaseSocket } from './socket';
+import './temperature.scss';
 
 export default function Temperature() {
   const [temperature, setTemperature] = useState<number>();
@@ -17,5 +18,5 @@ export default function Temperature() {
     };
   }, []);
 
-  return <p>{temperature} C°</p>;
+  return <p className="temperature">{temperature} C°</p>;
 }

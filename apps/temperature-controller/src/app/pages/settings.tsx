@@ -38,29 +38,33 @@ export const Settings = () => {
     [settings, setSettings]
   );
   return (
-    <div>
+    <>
       <Temperature />
-      <h2>Settings</h2>
       <TemperatureInput
         temperature={settings?.hysteresis}
         setTemperature={(value: number) =>
           setSettingsProperty('hysteresis', value)
         }
+        title="Hys"
       />
       <TemperatureInput
         temperature={settings?.level1Temperature}
         setTemperature={(value: number) =>
           setSettingsProperty('level1Temperature', value)
         }
+        title="Level1"
       />
       <TemperatureInput
         temperature={settings?.level2Temperature}
         setTemperature={(value: number) =>
           setSettingsProperty('level2Temperature', value)
         }
+        title="Level2"
       />
-      <button onClick={() => saveSettings(settings)}>Save</button>
-    </div>
+      <button onClick={() => saveSettings(settings)} className="primary">
+        Save
+      </button>
+    </>
   );
 };
 

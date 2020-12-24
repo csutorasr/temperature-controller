@@ -14,10 +14,9 @@ export const Main = () => {
   return (
     <div>
       <Temperature />
-      <h2>relay</h2>
-      <button onClick={() => setRelay('off')}>Off</button>
-      <button onClick={() => setRelay('level1')}>Level1</button>
-      <button onClick={() => setRelay('level2')}>Level2</button>
+      <button onClick={() => setRelay('off')} className="primary">Off</button>
+      <button onClick={() => setRelay('level1')} className="primary">Level1</button>
+      <button onClick={() => setRelay('level2')} className="primary">Level2</button>
     </div>
   );
 };

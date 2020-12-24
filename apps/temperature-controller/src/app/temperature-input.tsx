@@ -1,4 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
+import Triangle from './triangle';
+import './temperature-input.scss';
 
 export default function TemperatureInput({
   temperature,
@@ -35,16 +37,31 @@ export default function TemperatureInput({
     setTemperature(Math.round(temperature - 10));
   }, [setTemperature, temperature]);
   return (
-    <p>
-      {title}
-      <button onClick={minusTenths}>-0.1</button>
-      <button onClick={plusTenths}>+0.1</button>
-      <button onClick={minusUnits}>-1</button>
-      <button onClick={plusUnits}>+1</button>
-      <button onClick={minusTens}>-10</button>
-      <button onClick={plusTens}>+10</button>
-      {tens}
-      {units}.{tenths} C°
+    <p className="temperature-input">
+      <span className="title">{title}</span>
+      <span className="celsius">°C</span>
+      <span className="dot">.</span>
+      <button onClick={plusTens} style={{ gridArea: 'plus10' }}>
+        <Triangle direction="up" />
+      </button>
+      <button onClick={plusUnits} style={{ gridArea: 'plus1' }}>
+        <Triangle direction="up" />
+      </button>
+      <button onClick={plusTenths} style={{ gridArea: 'plus01' }}>
+        <Triangle direction="up" />
+      </button>
+      <span style={{ gridArea: 'number10' }}>{tens}</span>
+      <span style={{ gridArea: 'number1' }}>{units}</span>
+      <span style={{ gridArea: 'number01' }}>{tenths}</span>
+      <button onClick={minusTens} style={{ gridArea: 'minus10' }}>
+        <Triangle direction="down" />
+      </button>
+      <button onClick={minusUnits} style={{ gridArea: 'minus1' }}>
+        <Triangle direction="down" />
+      </button>
+      <button onClick={minusTenths} style={{ gridArea: 'minus01' }}>
+        <Triangle direction="down" />
+      </button>
     </p>
   );
 }
