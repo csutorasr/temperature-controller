@@ -133,6 +133,20 @@ describe('Relay controller', () => {
     expect(turnOnLevel).not.toHaveBeenCalledWith(0);
   });
 
+  it('should turn level 3 on at level 3 temperature', async () => {
+    forceInternalState(0);
+    settings = {
+      minimumOnTime: 30,
+      minimumOffTime: 30,
+      hysteresis: 2,
+      level1Temperature: 45,
+      level2Temperature: 55,
+      level3Temperature: 65,
+    };
+    await callback({ temperature: 65.1 });
+    expect(turnOnLevel).toHaveBeenCalledWith(2);
+  });
+
   it('should wait for minimum on time', async () => {
     forceInternalState(0, 'setTime');
     settings = {
@@ -199,6 +213,22 @@ describe('Relay controller', () => {
     expect(turnOnLevel).not.toHaveBeenCalledWith(1);
     await callback({ temperature: 52.9 });
     expect(turnOnLevel).toHaveBeenLastCalledWith(0);
+  });
+
+  it('should use level 3 hysteresis', async () => {
+    forceInternalState(1);
+    settings = {
+      minimumOnTime: 30,
+      minimumOffTime: 30,
+      hysteresis: 2,
+      level1Temperature: 45,
+      level2Temperature: 55,
+      level3Temperature: 65,
+    };
+    await callback({ temperature: 63 });
+    expect(turnOnLevel).not.toHaveBeenCalledWith(2);
+    await callback({ temperature: 62.9 });
+    expect(turnOnLevel).toHaveBeenLastCalledWith(1);
   });
 
   afterEach(() => {

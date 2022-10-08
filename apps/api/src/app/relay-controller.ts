@@ -15,6 +15,9 @@ const setRelays = async ({ temperature }: JobResult): Promise<void> => {
   const overLevel2 = temperature > settings.level2Temperature;
   const underLevel2 =
     temperature < settings.level2Temperature - settings.hysteresis;
+  const overLevel3 = temperature > settings.level3Temperature;
+  const underLevel3 =
+    temperature < settings.level3Temperature - settings.hysteresis;
   const currentTime = new Date();
   const nextOnTime = new Date(internalState.lastOff);
   nextOnTime.setSeconds(
@@ -26,7 +29,10 @@ const setRelays = async ({ temperature }: JobResult): Promise<void> => {
   );
   if (overLevel1) {
     if (nextOnTime < currentTime) {
-      if (overLevel2) {
+      if (overLevel3) {
+        await turnOnLevel(2);
+      }
+      if (overLevel2 && underLevel3) {
         await turnOnLevel(1);
       }
       if (underLevel2) {
