@@ -10,6 +10,7 @@ export interface Configuration {
   minimumOffTime: number;
   level1Temperature: number;
   level2Temperature: number;
+  level3Temperature: number;
   hysteresis: number;
 }
 
@@ -19,6 +20,7 @@ export let settings: Configuration = {
   hysteresis: 2,
   level1Temperature: 45,
   level2Temperature: 55,
+  level3Temperature: 65,
 };
 
 export async function setSettings(input: Configuration) {

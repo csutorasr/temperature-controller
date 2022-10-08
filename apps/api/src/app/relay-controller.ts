@@ -1,39 +1,11 @@
 import { addBackgroundJobCallback, JobResult } from './background-job';
-import { changeBig, changeSmall } from './orangepi/relay';
+import { Levels, turnOff, turnOnLevel } from './orangepi/relay';
 import { settings } from './settings';
 
-let lastOn: Date = new Date(0);
-let lastOff: Date = new Date(0);
-
-// This is required for not to override the manually set values.
-const internalState = {
-  big: false,
-  small: false,
-};
-const functionMap = {
-  small: changeSmall,
-  big: changeBig,
-};
-
-const turn = async (
-  type: 'small' | 'big',
-  value: 'on' | 'off',
-  callback?: () => void
-) => {
-  if (value === 'on' && !internalState[type]) {
-    await functionMap[type](true);
-    internalState[type] = true;
-    if (callback) {
-      callback();
-    }
-  }
-  if (value === 'off' && internalState[type]) {
-    await functionMap[type](false);
-    internalState[type] = false;
-    if (callback) {
-      callback();
-    }
-  }
+const internalState: { lastLevel?: Levels; lastOn: Date; lastOff: Date } = {
+  lastLevel: undefined,
+  lastOn: new Date(0),
+  lastOff: new Date(0),
 };
 
 const setRelays = async ({ temperature }: JobResult): Promise<void> => {
@@ -44,26 +16,28 @@ const setRelays = async ({ temperature }: JobResult): Promise<void> => {
   const underLevel2 =
     temperature < settings.level2Temperature - settings.hysteresis;
   const currentTime = new Date();
-  const nextOnTime = new Date(lastOff);
-  nextOnTime.setSeconds(lastOff.getSeconds() + settings.minimumOffTime);
-  const nextOffTime = new Date(lastOn);
-  nextOffTime.setSeconds(lastOn.getSeconds() + settings.minimumOnTime);
+  const nextOnTime = new Date(internalState.lastOff);
+  nextOnTime.setSeconds(
+    internalState.lastOff.getSeconds() + settings.minimumOffTime
+  );
+  const nextOffTime = new Date(internalState.lastOn);
+  nextOffTime.setSeconds(
+    internalState.lastOn.getSeconds() + settings.minimumOnTime
+  );
   if (overLevel1) {
     if (nextOnTime < currentTime) {
-      await turn('small', 'on');
       if (overLevel2) {
-        await turn('big', 'on');
-      } else if (underLevel2) {
-        await turn('big', 'off');
+        await turnOnLevel(1);
       }
-      lastOn = currentTime;
+      if (underLevel2) {
+        await turnOnLevel(0);
+      }
+      internalState.lastOn = currentTime;
     }
   } else if (underLevel1) {
     if (nextOffTime < currentTime) {
-      await turn('big', 'off');
-      await turn('small', 'off', () => {
-        lastOff = currentTime;
-      });
+      await turnOff();
+      internalState.lastOff = currentTime;
     }
   }
 };
@@ -72,16 +46,12 @@ export function setupRelayController() {
 }
 
 export function forceInternalState(
-  level: 'off' | 'level1' | 'level2',
+  level?: Levels | undefined,
   time: 'setTime' | 'notSetTime' = 'notSetTime'
 ) {
-  internalState.small = level === 'level1' || level === 'level2';
-  internalState.big = level === 'level2';
+  internalState.lastLevel = level;
   if (time === 'setTime') {
-    if (level === 'off') {
-      lastOff = new Date();
-    } else {
-      lastOn = new Date();
-    }
+    internalState.lastOff = new Date();
+    internalState.lastOn = new Date();
   }
 }

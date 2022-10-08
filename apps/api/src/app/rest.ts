@@ -4,7 +4,7 @@ import {
   ChangeRequest,
   ConfigurationResult,
 } from '@temperature-controller/api-interfaces';
-import { changeSmall, changeBig } from './orangepi/relay';
+import { turnOff, turnOnLevel } from './orangepi/relay';
 import { temperatureCache } from './temperature-cache';
 import { setSettings, settings } from './settings';
 
@@ -25,6 +25,7 @@ export function setupRest(app: Express) {
       hysteresis: body.hysteresis,
       level1Temperature: body.level1Temperature,
       level2Temperature: body.level2Temperature,
+      level3Temperature: body.level3Temperature,
       minimumOffTime: body.minimumOffTime,
       minimumOnTime: body.minimumOnTime,
     });
@@ -32,26 +33,18 @@ export function setupRest(app: Express) {
   });
   app.post('/api/relay/off', async (_, res) => {
     try {
-      await changeSmall(false);
-      await changeBig(false);
+      await turnOff();
       res.sendStatus(200);
     } catch (error) {
       res.status(500).send((error as Error).message);
     }
   });
-  app.post('/api/relay/level1', async (_, res) => {
+  app.post('/api/relay/level:level', async (req, res) => {
     try {
-      await changeSmall(true);
-      await changeBig(false);
-      res.sendStatus(200);
-    } catch (error) {
-      res.status(500).send((error as Error).message);
-    }
-  });
-  app.post('/api/relay/level2', async (_, res) => {
-    try {
-      await changeSmall(true);
-      await changeBig(true);
+      const level = +req.params.level - 1;
+      if (level === 0 || level === 1 || level === 2) {
+        await turnOnLevel(level);
+      }
       res.sendStatus(200);
     } catch (error) {
       res.status(500).send((error as Error).message);

@@ -2,6 +2,13 @@ import { access, constants, writeFile } from 'fs';
 import { promisify } from 'util';
 import { environment } from '../../environments/environment';
 
+const levelToPort = {
+  [0]: 14,
+  [1]: 16,
+  [2]: 15,
+};
+export type Levels = keyof typeof levelToPort;
+
 const accessAsync = promisify(access);
 const writeFileAsync = promisify(writeFile);
 
@@ -20,9 +27,19 @@ async function setGPIO(port: number, value: boolean) {
   await writeFileAsync(portValuePath, value ? '1' : '0');
 }
 
-export async function changeSmall(on: boolean) {
-  return await setGPIO(14, on);
+export async function turnOnLevel(levelToTurnOn: Levels) {
+  for (const level in levelToPort) {
+    if (Object.prototype.hasOwnProperty.call(levelToPort, level)) {
+      const port = levelToPort[level];
+      await setGPIO(port, +level === levelToTurnOn);
+    }
+  }
 }
-export async function changeBig(on: boolean) {
-  return await setGPIO(16, on);
+export async function turnOff() {
+  for (const level in levelToPort) {
+    if (Object.prototype.hasOwnProperty.call(levelToPort, level)) {
+      const port = levelToPort[level];
+      await setGPIO(port, false);
+    }
+  }
 }
