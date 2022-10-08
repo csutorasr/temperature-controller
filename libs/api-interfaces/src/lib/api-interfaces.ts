@@ -11,5 +11,6 @@ export interface ConfigurationResult {
   minimumOffTime: number;
   level1Temperature: number;
   level2Temperature: number;
+  level3Temperature: number;
   hysteresis: number;
 }

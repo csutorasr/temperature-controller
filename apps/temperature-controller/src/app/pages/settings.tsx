@@ -62,6 +62,13 @@ export const Settings = () => {
         }
         title="2. szint"
       />
+      <TemperatureInput
+        temperature={settings?.level3Temperature}
+        setTemperature={(value: number) =>
+          setSettingsProperty('level3Temperature', value)
+        }
+        title="3. szint"
+      />
       <SecondInput
         second={settings?.minimumOnTime}
         setSecond={(value: number) =>
