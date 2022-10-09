@@ -28,10 +28,14 @@ async function setGPIO(port: number, value: boolean) {
 }
 
 export async function turnOnLevel(levelToTurnOn: Levels) {
+  await turnOff();
+  await new Promise(resolve => setTimeout(resolve, 500));
   for (const level in levelToPort) {
     if (Object.prototype.hasOwnProperty.call(levelToPort, level)) {
       const port = levelToPort[level];
-      await setGPIO(port, +level === levelToTurnOn);
+      if (+level === levelToTurnOn) {
+        await setGPIO(port, true);
+      }
     }
   }
 }
